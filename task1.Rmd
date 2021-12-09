@@ -1,0 +1,107 @@
+--- 
+title: "Penguins size exploration Troubleshooting Activity, Michelle Geldin"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+library(palmerpenguins)
+library(tidyverse) 
+library(kableExtra) # Note: you probably need to install this package
+```
+
+### R Activity 1: Troubleshoot this code
+
+In this activity, troubleshoot the code. Each line with a `# FIX ME` at the end has a single error that needs to be fixed. We recommend trying to run code line-by-line as you fix each to ensure that it's working, then move on to the next line. 
+
+## 1. Penguins data exploratory visualization
+
+In this section, troubleshoot the code to prepare 2 customized ggplot graphs using the `penguins` dataset from the `palmerpenguins` R package: 
+
+- A scatterplot of flipper length vs. body mass, faceted (split up) by island
+- A histogram of bill lengths for all gentoo penguins in the data
+
+#### Scatterplot (flipper length & body mass)
+
+```{r}
+ggplot(data = penguins, 
+       aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point(aes(color = "species", size = 2)) + 
+  scale_color_manual(values = c("gray20","orange","cyan4"), 
+                     name = "Penguin species:") +
+  scale_x_continuous(breaks=c(170, 200, 230)) +
+  theme_bw() +
+  facet_wrap(~ island) +
+  labs(y = "Body mass (g)",
+       x = "Flipper length (mm)", 
+       title = "Palmer Archipelago adult nesting penguin size by island",
+       subtitle = "Data from Kristen Gorman, Palmer Station LTER (2007 - 2009)") +
+  theme(legend.position = "bottom")
+```
+#### Histogram of Gentoo bill lengths
+
+```{r}
+gentoo <- penguins %>%
+  filter(species == "Gentoo")
+
+ggplot(data = gentoo, aes(x = bill_length_mm)) +
+  geom_histogram(fill = "goldenrod3", 
+                 color = "goldenrod4",
+                 bins = 20) +
+  theme_minimal() +
+  labs(x = "Bill length (mm)",
+       y = "Frequency",
+       title = "Gentoo penguin bill length distribution",
+       subtitle = "Adults recorded in Palmer Archipelago, 2007 - 2009")
+```
+## 2. Penguins summary statistics
+
+In the following examples, troubleshoot the code to prepare several tables of summary statistics. You need to have the `kableExtra` R package installed (run `install.packages("kableExtra")` in the Console) and attached for the tables to be created successfully. 
+
+```{r}
+f_penguin_mass <- penguins %>% 
+  filter(sex == "female") %>%
+  group_by(species) %>%
+  summarize(mean_mass_g = mean(body_mass_g, na.rm = TRUE),
+            max_mass_g = max(body_mass_g),
+            sample_size = n())
+
+f_penguin_mass %>% 
+  kable(col.names = c("Species",
+                      "Mean body mass (g)", 
+                      "Max body mass (g)",
+                      "Sample size (n)")) %>% 
+  kable_styling(full_width = FALSE)
+```
+
+## 3. Penguin wrangling
+
+The goal of this code is to: 
+
+- Starting from `penguins`...
+- Only keep observations for Adelie and Chinstrap penguins from 2008
+- Select only columns for species, body mass, and flipper length
+- Add a new column with body mass converted to kilograms
+- Remove the body mass (grams) column
+- Rename the flipper length column to 'flip_mm'
+- Keep the top 5 largest (by body mass, in kg) penguins for both species
+- Create a table of the outcome
+
+```{r}
+adelie_chinstrap_mass_top5 <- penguins %>%
+  filter(species %in% c("Adelie", "Chinstrap"), year == 2008) %>%
+  select(species, body_mass_g, flipper_length_mm) %>%
+  mutate(mass_kg = body_mass_g / 1000) %>%
+  select (-body_mass_g) %>%
+  rename(flip_mm = flipper_length_mm) %>% 
+  group_by(species) %>% 
+  slice_max(order_by = mass_kg, n = 5)
+  
+adelie_chinstrap_mass_top5 %>% 
+  kable(col.names = c("Species",
+                      "flip_mm ",
+                      "Body mass (kg)")) %>%  
+  kable_styling(full_width = FALSE)
+```
+
+## END PENGUIN TROUBLE

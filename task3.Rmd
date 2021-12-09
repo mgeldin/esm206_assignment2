@@ -1,0 +1,55 @@
+---
+title: "Worst Graph Michelle Geldin"
+author: "Michelle Geldin"
+date: "10/13/2021"
+output: html_document
+---
+## Overview
+
+The ‘space_launches.csv’ data contains information from the JSR Launch Vehicle Database which provides a complete listing of all types of space launch vehicles, both suborbital and orbital, and seeks to indicate relationships between them. The data includes launch date, agencies responsible for launch, and vehicle type.
+
+### Data Citation
+
+Principal data came from the Jonathan McDowell's JSR Launch Vehicle Database, available online at http://www.planet4589.org/space/lvdb/index.html. Data has been accessed from the The Economist Github: https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-01-15
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(here)
+library(janitor)
+library(tidyverse)
+library(viridis)
+library(extrafont)
+```
+
+## Read in the Data
+
+```{r}
+space_data <- read_csv(here("data", "space_launches.csv"))
+```
+
+## Do Some Really Terrible Data Visualization
+
+```{r}
+ggplot(data = space_data, aes(x = mission, y = launch_date)) +
+  geom_point(size = 4, stat = "identity") +
+  coord_polar() +
+  theme(panel.background = element_rect(fill = "green", color = "blue")) +
+  theme(plot.background = element_rect(fill = "yellow", color = "red")) +
+  annotate("text", x = 250, y = 300,
+           label = "what",
+           color = "red", fontface = 25) +
+  theme(plot.title = element_text(size=60, face="italic", lineheight=.8, vjust=1, family = "Lumanari", color = "green")) +
+  labs(x = "huh", y = "please", title = "Berry Nice") +
+  theme(axis.title.y = element_text(angle = 29)) +
+  theme(axis.title.x = element_text(angle = 132)) +
+  geom_count() +
+  theme(legend.position = "top") + 
+  geom_vline(xintercept = 30, color = "red", size = 2)
+  
+```
+
+Figure Caption: 
+
+The figure above incorporates several alterations that render it's quality to be substantially horrendous. I first decided to graph the columns showing missions and launch date. The first major alteration to the data after reading it in was with coord_polar(), which caused the graphed mission and launch date data to become circular and centered. The second alteration was changing the panel background with theme(panel.background). The panel is where the plotted data points live, whereas the plot background is where the rest of the graph elements live, including titles and axes. I changed the color of the outline for the panel to blue and the fill for the entire panel to green. The third alteration to the data was changing the colors for the plot background using theme(plot.background). I changed the plot outline color to red and the plot fill to yellow. The fourth alteration I made was adding additional text to the graph using annotate(). I created red colored text in the panel that said "what", which got buried by subsequent alterations but successfully exists underneath the muck of other data. The fifth alteration is altering the plot title using theme(plot.title). I changed the size and color of my title and put it in italics. My sixth alteration was tilting the axis titles using theme(axis.title.y) and theme(axis.title.x). The sixth alteration is adding geom_count() which is used to plot two variables that are not continuous (which applies to the data I chose). geom_count() counts the number of observations at each location and then maps the count to point area. Using geom_count() gave me the legend. The seventh alteration used theme(position.legend) to move the legend to the top of the graph. Finally the eighth alteration is geom_vline() which adds a large red line through the middle of the panel.
+
+## End Task

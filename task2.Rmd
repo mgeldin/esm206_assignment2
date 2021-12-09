@@ -1,0 +1,101 @@
+---
+title: "Plastics Rivers Data Analysis: Assignment 2 Task 2 Michelle Geldin"
+author: "Michelle Geldin"
+date: "10/12/2021"
+output: html_document
+---
+
+## Overview
+
+The "plastic_rivers.csv" data comes from the scientific article "Export of Plastic Debris by Rivers into the Sea" and analyzes a global compilation of data on plastic debris in the water column across a wide range of river sizes. The dataset considers plastic debris loads for both microplastic (particles <5 mm) and macroplastic (particles >5 mm) across two different models measuring tons of plastics per year. These debris loads are assigned to the river catchment they have come from, the receiving sea they are flowing into, and the relative mismanaged plastic waste (MMPW) associated with the population of people in the river catchment area. The plastic debris loads are positively related to the mismanaged plastic waste (MMPW) generated in the river catchments. This report will wrangle the associated data to explore the top fifteen most impacted seas from plastics loads, and the top five river catchments contributing the greatest total plastics loads into the Gulf of Mexico.
+
+### Data Citation
+
+Schmidt C, Krauth T, Wagner S (2017). Export of plastic debris by rivers into the sea. Environ. Sci. Technol. v. 51 (21), p. 12246-12253.
+
+Data has been accessed using ACS Publications. https://pubs.acs.org/doi/10.1021/acs.est.7b02368# 
+
+## Setup
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(here)
+library(janitor)
+```
+
+## Read in the Data
+
+```{r}
+plastics_rivers_data <- read_csv(here("data", "plastic_rivers.csv"))
+```
+
+## Clean Column Names
+
+```{r}
+plastics_rivers_data_two <- plastics_rivers_data %>% 
+  clean_names()
+```
+
+
+```{r}
+plastics_rivers_data_three <- plastics_rivers_data_two %>% 
+  rename(mmpw_gen_percap_kg_d_1 = mmpw_generation_per_capita_kg_d_1,  mmpw_gen_in_catchment_tons_y_1 = mmpw_generated_in_the_catchment_tons_y_1, micro_load_model_1_tons_y_1 = microplastic_load_model_1_tons_y_1, micro_load_model_2_tons_y_1 = microplastic_load_model_2_tons_y_1, macro_load_tons_y_1 = macroplastic_load_tons_y_1)
+```
+
+## Data Wrangling for Model 2 Microplastics
+
+```{r}
+microplastics_total <- plastics_rivers_data_three %>% 
+  group_by(receiving_sea) %>% 
+  summarize(microplastics_total = sum(micro_load_model_2_tons_y_1, na.rm = TRUE)) %>% slice_max(microplastics_total, n=15) %>% 
+  mutate(receiving_sea = fct_reorder(receiving_sea, microplastics_total))
+```
+
+## Data Visualization for Model 2 Microplastics, Figure 1
+
+```{r}
+ggplot(data = microplastics_total, aes(x = receiving_sea, y = microplastics_total)) +
+  geom_bar(stat='identity', fill = 'red', width = .8) +
+  coord_flip() +
+  theme_minimal() +
+  labs(x = "Receiving Sea", y = "Total Annual Microplastics Load (Tons)", title = "Total Annual Microplastics Load in tons per Receiving Sea")
+```
+
+Figure 1 caption:
+
+The figure above demonstrates the top fifteen most impacted seas from the "plastics_river.csv" dataset by showing total microplastics loads in tons from Model 2 compared with the Receiving Sea that the microplastics loads came from, and then restricting the data to only show the fifteen most impacted Seas from plastic loads.
+
+
+## Total Plastics Loads Data Wrangling
+
+```{r}
+gulf_of_mexico_sum <- plastics_rivers_data_three %>% 
+  select(river, receiving_sea, micro_load_model_2_tons_y_1, macro_load_tons_y_1) %>% 
+  filter(receiving_sea == "Gulf of Mexico") %>% 
+  mutate(total_plastics_sum = micro_load_model_2_tons_y_1 + macro_load_tons_y_1) %>% 
+  slice_max(order_by = total_plastics_sum, n = 5) %>% 
+  mutate(river = fct_reorder(river, total_plastics_sum))
+```
+#group_by(river) %>% 
+#summarize(gulf_of_mexico_sum = sum(micro_load_model_2_tons_y_1, macro_load_tons_y_1, na.rm = TRUE))
+#mutate(river = fct_reorder(river, gulf_of_mexico_sum))
+  
+## Total Plastics Loads Data Visualization, Figure 2
+
+```{r}
+ggplot(data = gulf_of_mexico_sum, aes(x = river, y = total_plastics_sum)) +
+  geom_bar(stat = "identity", fill = "red", width = 0.3) +
+  coord_flip() +
+  theme_minimal() +
+  labs(x = "Total Microplastics (tons)", y = "Rivers", title = "Plastics Loads (tons) into the Gulf of Mexico per River")
+  
+  
+  
+```
+
+Figure 2 Caption:
+
+The figure above demonstrates the top five river catchments contributing the greatest total plastics loads (from microplastics in Model 2 and macroplastics in Model 1) into the receiving sea of the Gulf of Mexico.
+
+## End Task
